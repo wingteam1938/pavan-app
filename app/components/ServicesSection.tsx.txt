@@ -1,0 +1,68 @@
+import { Code2, Palette, ShoppingCart, Search, Smartphone, Settings, ArrowRight } from 'lucide-react'
+
+interface Service {
+  title: string
+  description: string
+  icon: string
+}
+
+interface ServicesContent {
+  heading?: string
+  services_list?: Service[]
+}
+
+export default function ServicesSection({ content }: { content: ServicesContent }) {
+  const heading = content?.heading || 'What We Offer'
+  const services = content?.services_list || [
+    { title: 'Web Development', description: 'Custom websites built with modern frameworks', icon: 'code' },
+    { title: 'UI/UX Design', description: 'Beautiful, user-centered design', icon: 'palette' },
+    { title: 'E-Commerce', description: 'Full online store solutions', icon: 'shopping-cart' },
+    { title: 'SEO Optimization', description: 'Rank higher on search engines', icon: 'search' },
+    { title: 'Mobile Apps', description: 'Native & cross-platform apps', icon: 'smartphone' },
+    { title: 'Maintenance', description: '24/7 support & updates', icon: 'settings' },
+  ]
+
+  const iconMap: { [key: string]: any } = {
+    code: Code2, palette: Palette, 'shopping-cart': ShoppingCart,
+    search: Search, smartphone: Smartphone, settings: Settings,
+  }
+
+  return (
+    <section id="services" className="relative py-24 bg-[#161B22]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <div className="inline-block bg-[#1C2333] border border-[#30363D] rounded-full px-4 py-1.5 mb-6">
+            <span className="text-sm text-[#6C63FF]">Our Services</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            {heading}
+          </h2>
+          <p className="text-[#8B949E] max-w-2xl mx-auto">
+            Comprehensive digital solutions to take your business to the next level
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {services.map((service, i) => {
+            const Icon = iconMap[service.icon] || Code2
+            return (
+              <div
+                key={i}
+                className="admin-card group cursor-pointer hover:translate-y-[-4px] transition-all duration-300"
+              >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#6C63FF]/20 to-[#00D9FF]/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                  <Icon className="w-7 h-7 text-[#6C63FF]" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{service.title}</h3>
+                <p className="text-[#8B949E] mb-4">{service.description}</p>
+                <div className="flex items-center text-[#6C63FF] text-sm font-medium gap-1 group-hover:gap-2 transition-all">
+                  Learn More <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}

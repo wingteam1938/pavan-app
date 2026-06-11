@@ -1,0 +1,174 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Save, RefreshCw, Palette, Type, Image, Phone } from 'lucide-react'
+
+export default function BrandingEditor() {
+  const [settings, setSettings] = useState({
+    brand_name: 'WebDev Pro',
+    tagline: 'We Build Digital Excellence',
+    primary_color: '#6C63FF',
+    secondary_color: '#00D9FF',
+    accent_color: '#FF6B6B',
+    whatsapp_number: '14155551234',
+    whatsapp_message: 'Hi! I need a website for my business.',
+    footer_text: '© 2026 WebDev Pro. All rights reserved.',
+  })
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (Object.keys(data).length > 0) {
+          setSettings(prev => ({ ...prev, ...data }))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      console.error('Failed to save:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Branding</h1>
+          <p className="text-[#8B949E]">Customize your website&apos;s look and feel</p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-primary flex items-center gap-2"
+        >
+          {saving ? (
+            <RefreshCw className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {saved ? 'Saved!' : 'Save Changes'}
+        </button>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Brand Identity */}
+        <div className="admin-card space-y-5">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Type className="w-4 h-4 text-[#6C63FF]" /> Brand Identity
+          </h3>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2 text-[#8B949E]">Brand Name</label>
+            <input
+              type="text"
+              value={settings.brand_name}
+              onChange={(e) => setSettings({...settings, brand_name: e.target.value})}
+              className="admin-input"
+              placeholder="Your Business Name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2 text-[#8B949E]">Tagline</label>
+            <input
+              type="text"
+              value={settings.tagline}
+              onChange={(e) => setSettings({...settings, tagline: e.target.value})}
+              className="admin-input"
+              placeholder="Your tagline here"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2 text-[#8B949E]">Footer Text</label>
+            <input
+              type="text"
+              value={settings.footer_text}
+              onChange={(e) => setSettings({...settings, footer_text: e.target.value})}
+              className="admin-input"
+              placeholder="© 2026 Your Company. All rights reserved."
+            />
+          </div>
+        </div>
+
+        {/* Colors */}
+        <div className="admin-card space-y-5">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Palette className="w-4 h-4 text-[#00D9FF]" /> Color Scheme
+          </h3>
+
+          {[
+            { key: 'primary_color', label: 'Primary Color', default: '#6C63FF' },
+            { key: 'secondary_color', label: 'Secondary Color', default: '#00D9FF' },
+            { key: 'accent_color', label: 'Accent Color', default: '#FF6B6B' },
+          ].map(({ key, label }) => (
+            <div key={key}>
+              <label className="block text-sm font-medium mb-2 text-[#8B949E]">{label}</label>
+              <div className="flex gap-3 items-center">
+                <input
+                  type="color"
+                  value={(settings as any)[key]}
+                  onChange={(e) => setSettings({...settings, [key]: e.target.value})}
+                  className="w-12 h-12 rounded-lg cursor-pointer bg-transparent border border-[#30363D]"
+                />
+                <input
+                  type="text"
+                  value={(settings as any)[key]}
+                  onChange={(e) => setSettings({...settings, [key]: e.target.value})}
+                  className="admin-input flex-1 font-mono"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* WhatsApp */}
+        <div className="admin-card space-y-5 lg:col-span-2">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Phone className="w-4 h-4 text-[#3fb950]" /> WhatsApp Integration
+          </h3>
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-[#8B949E]">WhatsApp Number</label>
+              <input
+                type="text"
+                value={settings.whatsapp_number}
+                onChange={(e) => setSettings({...settings, whatsapp_number: e.target.value})}
+                className="admin-input"
+                placeholder="14155551234"
+              />
+              <p className="text-xs text-[#8B949E] mt-1">International format without + sign</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-[#8B949E]">Default Message</label>
+              <input
+                type="text"
+                value={settings.whatsapp_message}
+                onChange={(e) => setSettings({...settings, whatsapp_message: e.target.value})}
+                className="admin-input"
+                placeholder="Hi! I need a website for my business."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,121 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Save, Eye, Code2, FileText, RefreshCw } from 'lucide-react'
+
+export default function PagesEditor() {
+  const [pages, setPages] = useState<any>({})
+  const [activePage, setActivePage] = useState('hero')
+  const [content, setContent] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const pageKeys = [
+    { key: 'hero', label: 'Hero Section', icon: Code2 },
+    { key: 'about', label: 'About Section', icon: FileText },
+    { key: 'services', label: 'Services Section', icon: FileText },
+    { key: 'contact', label: 'Contact Section', icon: FileText },
+  ]
+
+  useEffect(() => {
+    fetch('/api/pages')
+      .then(res => res.json())
+      .then(data => {
+        setPages(data)
+        if (data[activePage]) {
+          setContent(JSON.stringify(data[activePage], null, 2))
+        }
+      })
+      .catch(() => {})
+  }, [activePage])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      let parsedContent
+      try {
+        parsedContent = JSON.parse(content)
+      } catch {
+        parsedContent = content
+      }
+      
+      await fetch('/api/pages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [activePage]: parsedContent })
+      })
+      
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err) {
+      console.error('Failed to save:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold mb-1">Page Editor</h1>
+          <p className="text-[#8B949E]">Edit your website content in real-time</p>
+        </div>
+        <div className="flex gap-3">
+          <a href="/" target="_blank" className="btn-secondary flex items-center gap-2 text-sm">
+            <Eye className="w-4 h-4" /> Preview Site
+          </a>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary flex items-center gap-2"
+          >
+            {saving ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saved ? 'Saved!' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-4 gap-6">
+        {/* Page Selector */}
+        <div className="space-y-2">
+          {pageKeys.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActivePage(key)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                activePage === key
+                  ? 'bg-[#6C63FF]/10 border border-[#6C63FF]/30 text-[#6C63FF]'
+                  : 'text-[#8B949E] hover:text-[#E6EDF3] hover:bg-[#1C2333]'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-sm font-medium">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Editor */}
+        <div className="lg:col-span-3">
+          <div className="admin-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold capitalize">{activePage} Content (JSON)</h3>
+              <span className="text-xs text-[#8B949E]">Edit carefully - invalid JSON will break the page</span>
+            </div>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="admin-input font-mono text-sm resize-none"
+              rows={25}
+              style={{ minHeight: '400px' }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
